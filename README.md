@@ -1,6 +1,6 @@
-# Hermes Gateway
+# deepseek-claude-proxy
 
-**Intelligent Anthropic-protocol gateway** — the thinking proxy that actually checks if thinking worked.
+**DeepSeek → Claude Code proxy** — the thinking proxy that actually verifies thinking worked.
 
 ```
 Claude Code → Hermes Gateway → DeepSeek /anthropic

@@ -403,7 +403,7 @@ describe("Gateway Server Integration", () => {
       expect(response.status).toBe(200);
 
       const body = await response.json();
-      expect(body.name).toBe("hermes-gateway");
+      expect(body.name).toBe("deepseek-claude-proxy");
       expect(body.features).toContain("thinking-guardian");
       expect(body.features).toContain("provider-mesh");
       expect(body.features).toContain("audit-mode");

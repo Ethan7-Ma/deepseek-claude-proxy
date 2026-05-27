@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Hermes Gateway — Intelligent Anthropic-protocol gateway.
+ * Hermes Gateway → deepseek-claude-proxy
  *
  * Three killer features over plain proxies:
  *   1. Thinking Guardian — validates that upstream responses actually contain thinking blocks.
@@ -459,7 +459,7 @@ export function createGateway(mesh: ProviderMesh, options: GatewayOptions = {}) 
     if (method === "GET" && (url === "/" || url === "")) {
       const config = mesh.getConfig();
       respondJson(res, 200, {
-        name: "hermes-gateway",
+        name: "deepseek-claude-proxy",
         version: GATEWAY_VERSION,
         status: "running",
         provider: mesh.active,
@@ -628,7 +628,7 @@ if (isMainModule()) {
 
     console.log(`
 ╔══════════════════════════════════════════════════════════╗
-║           Hermes Gateway v${GATEWAY_VERSION}                          ║
+║         deepseek-claude-proxy v${GATEWAY_VERSION}                  ║
 ╠══════════════════════════════════════════════════════════╣
 ║  http://localhost:${port}
 ║  Primary:  ${config.name} (${config.model})
