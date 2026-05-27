@@ -3,7 +3,7 @@
 **DeepSeek → Claude Code proxy** — the thinking proxy that actually verifies thinking worked.
 
 ```
-Claude Code → Hermes Gateway → DeepSeek /anthropic
+Claude Code → deepseek-claude-proxy → DeepSeek /anthropic
                   │
                   ├─ Thinking Guardian: validates thinking blocks, retries if missing
                   ├─ Provider Mesh: auto failover DeepSeek→Kimi→Qwen
@@ -20,11 +20,25 @@ Every other Claude proxy is a **dumb pipe** — they forward bytes without knowi
 
 ```bash
 # Requires Node.js 20.12+
-npx hermes-gateway
+npx deepseek-claude-proxy
 
 # Or install globally
-npm install -g hermes-gateway
-hermes-gateway
+npm install -g deepseek-claude-proxy
+deepseek-claude-proxy
+```
+
+### Docker
+
+```bash
+# Create .env with your API key
+echo "DEEPSEEK_API_KEY=sk-your-key" > .env
+
+# Build and run
+docker compose up -d
+
+# Or without compose
+docker build -t deepseek-claude-proxy .
+docker run -d -p 8080:8080 --env-file .env deepseek-claude-proxy
 ```
 
 Configure your API key:
@@ -118,7 +132,7 @@ All via environment variables or `.env` file:
 
 ## Compared to alternatives
 
-| | Hermes Gateway | claude-proxy | CCR-Rust | UnicludeProxy | LiteLLM |
+| | deepseek-claude-proxy | claude-proxy | CCR-Rust |
 |---|:---:|:---:|:---:|:---:|:---:|
 | **Thinking validation** | ✅ Active check | ❌ Blind passthrough | ❌ Disabled | ✅ Manual setup | ❌ Broken |
 | **Provider failover** | ✅ Auto health checks | ❌ Manual switch | ✅ Manual switch | ❌ None | ✅ Yes |
@@ -130,7 +144,7 @@ All via environment variables or `.env` file:
 ## Library Usage
 
 ```ts
-import { createGateway, ProviderMesh } from "hermes-gateway";
+import { createGateway, ProviderMesh } from "deepseek-claude-proxy";
 
 const mesh = new ProviderMesh();
 const server = createGateway(mesh, { port: 8080 });

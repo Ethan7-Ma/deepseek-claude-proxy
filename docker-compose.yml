@@ -1,0 +1,14 @@
+services:
+  deepseek-claude-proxy:
+    build: .
+    container_name: deepseek-claude-proxy
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+    # Optional: pin to specific DeepSeek API key
+    # environment:
+    #   - DEEPSEEK_API_KEY=sk-your-key
+    #   - KIMI_API_KEY=sk-backup-key
+    #   - PROXY_API_KEY=optional-auth-token
