@@ -16,6 +16,9 @@ try {
 } catch {}
 
 const MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro';
+const HAIKU_MODEL = process.env.DEEPSEEK_HAIKU_MODEL || 'deepseek-v4-flash';
+const SONNET_MODEL = process.env.DEEPSEEK_SONNET_MODEL || 'deepseek-v4-pro';
+const OPUS_MODEL = process.env.DEEPSEEK_OPUS_MODEL || 'deepseek-v4-pro';
 const PORT = parseInt(process.env.PROXY_PORT || '8080', 10);
 
 const CLAUDE_RE = /^claude-|^(?:opus|sonnet|haiku)$/i;
@@ -32,7 +35,11 @@ function hdr(req: IncomingMessage, name: string): string | undefined {
 }
 
 function mapModel(m: string): string {
-  return CLAUDE_RE.test(m) ? MODEL : m;
+  if (!CLAUDE_RE.test(m)) return m;
+  if (/haiku/i.test(m)) return HAIKU_MODEL;
+  if (/sonnet/i.test(m)) return SONNET_MODEL;
+  if (/opus/i.test(m)) return OPUS_MODEL;
+  return MODEL;
 }
 
 function json(res: ServerResponse, code: number, body: unknown) {
@@ -61,7 +68,16 @@ export function createApp() {
     const url = new URL(req.url || '/', `http://${req.headers.host}`);
 
     if (req.method === 'GET' && url.pathname === '/health') {
-      return json(res, 200, { status: 'ok', provider: 'deepseek', model: MODEL });
+      return json(res, 200, {
+        status: 'ok',
+        provider: 'deepseek',
+        mappings: {
+          haiku: HAIKU_MODEL,
+          sonnet: SONNET_MODEL,
+          opus: OPUS_MODEL,
+          default: MODEL,
+        },
+      });
     }
 
     if (req.method === 'GET' && url.pathname === '/v1/models') {

@@ -115,6 +115,11 @@ describe('POST /v1/messages', () => {
   });
 
   it('maps short aliases (sonnet, opus, haiku)', async () => {
+    const expected: Record<string, string> = {
+      sonnet: 'deepseek-v4-pro',
+      opus: 'deepseek-v4-pro',
+      haiku: 'deepseek-v4-flash',
+    };
     for (const alias of ['sonnet', 'opus', 'haiku']) {
       const resp = await send({
         model: alias, max_tokens: 100,
@@ -122,7 +127,7 @@ describe('POST /v1/messages', () => {
       });
       expect(resp.status).toBe(200);
       const json = await resp.json();
-      expect(json.model).toBe('deepseek-v4-pro');
+      expect(json.model).toBe(expected[alias]);
     }
   });
 
