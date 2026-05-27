@@ -1,6 +1,6 @@
 {
   "name": "deepseek-claude-proxy",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "type": "module",
   "description": "Minimal zero-dependency proxy from Anthropic Messages API to DeepSeek",
   "license": "MIT",
