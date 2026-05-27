@@ -1,7 +1,19 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { realpathSync } from 'node:fs';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+
+// Auto-load .env from CWD (don't override existing env vars)
+try {
+  const envFile = readFileSync('.env', 'utf-8');
+  for (const line of envFile.split('\n')) {
+    const m = line.match(/^\s*([^#=\s]+)\s*=\s*(.+?)\s*$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
+  }
+} catch {}
 
 const MODEL = process.env.DEEPSEEK_MODEL || 'deepseek-v4-pro';
 const PORT = parseInt(process.env.PROXY_PORT || '8080', 10);
@@ -120,8 +132,10 @@ export function createApp() {
   return srv;
 }
 
-// CLI entry
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/^.*[\\/]/, ''))) {
+// CLI entry — resolve symlinks so `deepseek-claude-proxy` and `node dist/proxy.js` both work
+const isMain = process.argv[1] &&
+  fileURLToPath(import.meta.url) === realpathSync(process.argv[1]);
+if (isMain) {
   if (!process.env.DEEPSEEK_API_KEY) {
     process.stderr.write('Error: DEEPSEEK_API_KEY is required\n');
     process.exit(1);
