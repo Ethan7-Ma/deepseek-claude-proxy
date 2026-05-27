@@ -1,5 +1,5 @@
 {
-  "name": "hermes-gateway",
+  "name": "deepseek-claude-proxy",
   "version": "0.1.0",
   "type": "module",
   "description": "Intelligent Anthropic-protocol gateway with Thinking Guardian, Provider Mesh, and Audit Mode — zero dependencies, Node 20+ only",
@@ -7,7 +7,7 @@
   "main": "./dist/gateway.js",
   "types": "./dist/gateway.d.ts",
   "bin": {
-    "hermes-gateway": "dist/gateway.js"
+    "deepseek-claude-proxy": "dist/gateway.js"
   },
   "exports": {
     ".": {
