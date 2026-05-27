@@ -70,6 +70,7 @@ export function createApp() {
       }
 
       const streaming = payload.stream === true;
+      const beta = hdr(req, 'anthropic-beta');
 
       let upstream: Response;
       try {
@@ -79,6 +80,7 @@ export function createApp() {
             'Content-Type': 'application/json',
             'x-api-key': apiKey!,
             'anthropic-version': hdr(req, 'anthropic-version') || '2023-06-01',
+            ...(beta ? { 'anthropic-beta': beta } : {}),
           },
           body: JSON.stringify(payload),
         });
