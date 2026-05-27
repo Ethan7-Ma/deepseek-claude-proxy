@@ -1,0 +1,53 @@
+{
+  "name": "hermes-gateway",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Intelligent Anthropic-protocol gateway with Thinking Guardian, Provider Mesh, and Audit Mode — zero dependencies, Node 20+ only",
+  "license": "MIT",
+  "main": "./dist/gateway.js",
+  "types": "./dist/gateway.d.ts",
+  "bin": {
+    "hermes-gateway": "dist/gateway.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/gateway.d.ts",
+      "import": "./dist/gateway.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE",
+    ".env.example"
+  ],
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "dev": "tsx watch src/gateway.ts",
+    "build": "tsc",
+    "start": "node dist/gateway.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage --coverage.reporter=lcov --coverage.reporter=text"
+  },
+  "keywords": [
+    "anthropic",
+    "claude",
+    "claude-code",
+    "deepseek",
+    "gateway",
+    "proxy",
+    "thinking",
+    "llm",
+    "sse"
+  ],
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^3.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.0",
+    "vitest": "^3.0.0"
+  }
+}
