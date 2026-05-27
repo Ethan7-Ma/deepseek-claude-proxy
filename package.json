@@ -1,33 +1,32 @@
 {
   "name": "deepseek-claude-proxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "description": "Intelligent Anthropic-protocol gateway with Thinking Guardian, Provider Mesh, and Audit Mode — zero dependencies, Node 20+ only",
+  "description": "Minimal zero-dependency proxy from Anthropic Messages API to DeepSeek",
   "license": "MIT",
-  "main": "./dist/gateway.js",
-  "types": "./dist/gateway.d.ts",
+  "main": "./dist/proxy.js",
+  "types": "./dist/proxy.d.ts",
   "bin": {
-    "deepseek-claude-proxy": "dist/gateway.js"
+    "deepseek-claude-proxy": "dist/proxy.js"
   },
   "exports": {
     ".": {
-      "types": "./dist/gateway.d.ts",
-      "import": "./dist/gateway.js"
+      "types": "./dist/proxy.d.ts",
+      "import": "./dist/proxy.js"
     }
   },
   "files": [
     "dist/",
     "README.md",
-    "LICENSE",
-    ".env.example"
+    "LICENSE"
   ],
   "engines": {
     "node": ">=20.12"
   },
   "scripts": {
-    "dev": "tsx watch src/gateway.ts",
+    "dev": "tsx src/proxy.ts",
     "build": "tsc",
-    "start": "node dist/gateway.js",
+    "start": "node dist/proxy.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage --coverage.reporter=lcov --coverage.reporter=text"
@@ -37,10 +36,7 @@
     "claude",
     "claude-code",
     "deepseek",
-    "gateway",
     "proxy",
-    "thinking",
-    "llm",
     "sse"
   ],
   "devDependencies": {

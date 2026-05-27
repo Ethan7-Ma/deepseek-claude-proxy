@@ -1,50 +1,27 @@
 # deepseek-claude-proxy
 
-**DeepSeek → Claude Code proxy** — the thinking proxy that actually verifies thinking worked.
+A minimal proxy that lets Claude Code use DeepSeek as its backend.
+
+## What it does
+
+Claude Code speaks the Anthropic Messages API natively. DeepSeek provides an Anthropic-compatible endpoint at `https://api.deepseek.com/anthropic`. This proxy sits between them and handles one thing: mapping Claude model names to DeepSeek model names.
 
 ```
-Claude Code → deepseek-claude-proxy → DeepSeek /anthropic
-                  │
-                  ├─ Thinking Guardian: validates thinking blocks, retries if missing
-                  ├─ Provider Mesh: auto failover DeepSeek→Kimi→Qwen
-                  └─ Audit Mode: inject HUD formula review prompts via header
+Claude Code  →  deepseek-claude-proxy  →  DeepSeek /anthropic
+                (model name mapping)
 ```
-
-## Why this exists
-
-Every other Claude proxy is a **dumb pipe** — they forward bytes without knowing what's inside. When DeepSeek silently drops `thinking` blocks, your Claude Code session degrades and you never know why.
-
-**Hermes Gateway actually inspects the response.** It scans SSE streams for thinking blocks. If none are found, it retries with explicit thinking configuration. It also auto-fails over between providers and can inject domain-specific system prompts for code audit workflows.
 
 ## Quick Start
 
 ```bash
-# Requires Node.js 20.12+
+export DEEPSEEK_API_KEY=sk-your-key
+
+# Run directly
 npx deepseek-claude-proxy
 
 # Or install globally
 npm install -g deepseek-claude-proxy
 deepseek-claude-proxy
-```
-
-### Docker
-
-```bash
-# Create .env with your API key
-echo "DEEPSEEK_API_KEY=sk-your-key" > .env
-
-# Build and run
-docker compose up -d
-
-# Or without compose
-docker build -t deepseek-claude-proxy .
-docker run -d -p 8080:8080 --env-file .env deepseek-claude-proxy
-```
-
-Configure your API key:
-
-```bash
-export DEEPSEEK_API_KEY=sk-your-key
 ```
 
 Then point Claude Code at it:
@@ -55,100 +32,45 @@ export ANTHROPIC_API_KEY=any-string-works
 claude
 ```
 
-## Three Killer Features
-
-### 1. Thinking Guardian
-
-DeepSeek's `/anthropic` endpoint converts `reasoning_content` to Anthropic `thinking` blocks — but only when `thinking: { type: "enabled", budget_tokens: N }` is present. If the client doesn't send it (Claude Code sometimes omits it), thinking silently disappears.
-
-The Guardian scans every streaming response for thinking blocks. If none are found:
-- **Attempt 1**: Retry with `thinking: { type: "enabled", budget_tokens: 4096 }` injected
-- **Attempt 2**: Retry with higher budget
-- **Final**: Pass through with a warning log
-
-You'll see `[Gateway]` log lines with `phase: "thinking_check"` showing block counts.
-
-### 2. Provider Mesh
-
-```yaml
-deepseek (primary) ──→ 100% traffic
-  ├── DOWN? ──→ kimi takes over
-  ├── RECOVERED? ──→ auto switch back
-  └── health check every 30s
-```
-
-Configure multiple providers:
+### Docker
 
 ```bash
-export DEEPSEEK_API_KEY=sk-xxx      # Primary
-export KIMI_API_KEY=sk-yyy          # Backup
-export QWEN_API_KEY=sk-zzz          # Backup
+echo "DEEPSEEK_API_KEY=sk-your-key" > .env
+docker compose up -d
 ```
 
-Health checks run every 30 seconds. After 3 consecutive failures, a provider is marked DOWN and traffic shifts to the next healthy one. When the primary recovers, traffic automatically shifts back.
+## Configuration
 
-### 3. Audit Mode
+All via environment variables:
 
-Activate HUD-specific code review with a single header:
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DEEPSEEK_API_KEY` | *(required)* | Your DeepSeek API key |
+| `DEEPSEEK_MODEL` | `deepseek-v4-pro` | Model name to use |
+| `DEEPSEEK_ANTHROPIC_BASE_URL` | `https://api.deepseek.com/anthropic` | DeepSeek Anthropic endpoint |
+| `PROXY_PORT` | `8080` | Server port |
+| `PROXY_API_KEY` | *(optional)* | Require this token in client requests |
 
-```bash
-curl -X POST http://localhost:8080/v1/messages \
-  -H "X-Audit-Mode: hud-formula" \
-  -H "Content-Type: application/json" \
-  -d '{"model":"claude-sonnet-4-6","max_tokens":4096,"messages":[...]}'
-```
+## How it works
 
-Available modes:
-| Mode | Description |
-|------|-------------|
-| `hud-formula` | HUD optical formula chain audit — traces pixel→mm→angle conversion chains |
-| `hud-tolerance` | HUD tolerance configuration audit — detects conflicting hardcoded values |
-| `general` | General code review with enhanced reasoning |
+The proxy is ~120 lines of TypeScript with zero npm dependencies (Node 20+ only).
 
-Get the full list: `GET /audit-modes`
+When Claude Code sends a request with `model: "claude-sonnet-4-6"`, the proxy replaces it with `DEEPSEEK_MODEL` (default: `deepseek-v4-pro`). Non-Claude model names pass through unchanged. Everything else — streaming, tool use, thinking blocks — is forwarded as-is.
 
 ## Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/v1/messages` | Anthropic Messages API (main proxy) |
-| `GET` | `/health` | Health check with provider status |
-| `GET` | `/v1/models` | Claude model listing |
-| `GET` | `/api/provider` | Current provider info |
-| `GET` | `/audit-modes` | Available audit modes |
+| `POST` | `/v1/messages` | Messages API proxy |
+| `GET` | `/health` | Health check |
+| `GET` | `/v1/models` | Model listing |
 
-## Configuration
-
-All via environment variables or `.env` file:
-
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `DEEPSEEK_API_KEY` | DeepSeek API key | *(required)* |
-| `DEEPSEEK_MODEL` | Model name | `deepseek-v4-pro` |
-| `KIMI_API_KEY` | Kimi API key (backup) | — |
-| `QWEN_API_KEY` | Qwen API key (backup) | — |
-| `GATEWAY_PORT` | Server port | `8080` |
-| `PROXY_API_KEY` | Optional auth token | *(no auth)* |
-
-## Compared to alternatives
-
-| | deepseek-claude-proxy | claude-proxy | CCR-Rust |
-|---|:---:|:---:|:---:|:---:|:---:|
-| **Thinking validation** | ✅ Active check | ❌ Blind passthrough | ❌ Disabled | ✅ Manual setup | ❌ Broken |
-| **Provider failover** | ✅ Auto health checks | ❌ Manual switch | ✅ Manual switch | ❌ None | ✅ Yes |
-| **Audit prompts** | ✅ Domain-specific | ❌ None | ❌ None | ❌ None | ❌ None |
-| **Dependencies** | 0 (Node 20 native) | 1 (Express) | 0 (Rust binary) | 5+ (Python) | Docker |
-| **Code size** | ~1200 lines | 549 lines | Full Rust stack | Python | Huge |
-| **Deploy** | `npx` / `node` | `npx` / `npm -g` | `cargo build` | `pip` + 3 fixes | Docker |
-
-## Library Usage
+## Library usage
 
 ```ts
-import { createGateway, ProviderMesh } from "deepseek-claude-proxy";
+import { createApp } from "deepseek-claude-proxy";
 
-const mesh = new ProviderMesh();
-const server = createGateway(mesh, { port: 8080 });
-mesh.startHealthChecks();
+const server = createApp();
 server.listen(8080);
 ```
 
