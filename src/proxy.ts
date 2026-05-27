@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { createServer } from 'node:http';
 import { Readable } from 'node:stream';
 import type { IncomingMessage, ServerResponse } from 'node:http';
